@@ -75,15 +75,41 @@ function draw() {
 
     force.limit(150);
 
-    stroke("#D98EAB");
-    strokeWeight(3);
+    let strength = map(force.mag(), 0, 150, 0, 1);
+    let arrowColor = lerpColor(
+      color("#D98EAB"),
+      color("#7A4057"),
+      strength
+    );
+    let arrowEnd = p5.Vector.add(selectedBall.pos, force);
 
+    stroke(arrowColor);
+    strokeWeight(3);
     line(
       selectedBall.pos.x,
       selectedBall.pos.y,
-      selectedBall.pos.x + force.x,
-      selectedBall.pos.y + force.y
+      arrowEnd.x,
+      arrowEnd.y
     );
+
+    // 힘의 방향을 보여 주는 화살촉
+    push();
+    translate(arrowEnd.x, arrowEnd.y);
+    rotate(force.heading());
+    line(0, 0, -10, -5);
+    line(0, 0, -10, 5);
+    pop();
+
+    noStroke();
+    fill(arrowColor);
+    textAlign(LEFT, CENTER);
+    textSize(12);
+    text(
+      "Force: " + (force.mag() * power).toFixed(2),
+      arrowEnd.x + 10,
+      arrowEnd.y
+    );
+    textAlign(LEFT, BASELINE);
   }
 
   noStroke();
