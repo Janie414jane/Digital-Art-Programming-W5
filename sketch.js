@@ -1,5 +1,6 @@
 
 let balls = [];
+let waves = [];
 let selectedBall = null;
 let dragStart = null;
 let dragEnd = null;
@@ -33,6 +34,8 @@ function setup() {
 
 function draw() {
   background("#F7F5F0");
+
+  showWaves();
 
   // 구체의 움직임 계산
   for (let ball of balls) {
@@ -242,6 +245,18 @@ function collide(a, b) {
 
   let impulseVector = direction.copy().mult(impulse);
 
+  // 충격량이 클수록 더 크고 선명한 파동 생성
+  let impact = abs(impulse);
+  waves.push({
+    pos: p5.Vector.add(a.pos, b.pos).mult(0.5),
+    radius: 2,
+    maxRadius: 18 + impact * 12,
+    alpha: constrain(45 + impact * 45, 45, 210),
+    growth: 1.5 + impact * 0.25,
+    weight: 1.5 + impact * 0.15,
+    col: a.col
+  });
+
   a.vel.sub(
     impulseVector.copy().div(a.mass)
   );
@@ -249,6 +264,27 @@ function collide(a, b) {
   b.vel.add(
     impulseVector.copy().div(b.mass)
   );
+}
+
+function showWaves() {
+  noFill();
+
+  for (let i = waves.length - 1; i >= 0; i--) {
+    let wave = waves[i];
+
+    wave.radius += wave.growth;
+    wave.alpha *= 0.94;
+
+    let c = color(wave.col);
+    c.setAlpha(wave.alpha);
+    stroke(c);
+    strokeWeight(wave.weight);
+    circle(wave.pos.x, wave.pos.y, wave.radius * 2);
+
+    if (wave.radius > wave.maxRadius || wave.alpha < 2) {
+      waves.splice(i, 1);
+    }
+  }
 }
 
 // 마우스로 당기기 시작
@@ -296,6 +332,7 @@ function mouseReleased() {
 function keyPressed() {
   if (key === "r" || key === "R") {
     balls = [];
+    waves = [];
     selectedBall = null;
     setupBalls();
   }
