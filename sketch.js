@@ -103,7 +103,7 @@ class Ball {
     this.acc = createVector(0, 0);
 
     this.mass = mass;
-    this.r = 12 + mass * 5;
+    this.r = mass * 8;
     this.col = col;
     this.trail = [];
   }
@@ -197,6 +197,12 @@ class Ball {
       this.pos.y - this.r * 0.25,
       this.r * 0.6
     );
+
+    fill("#555555");
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    text(this.mass, this.pos.x, this.pos.y);
+    textAlign(LEFT, BASELINE);
   }
 }
 
