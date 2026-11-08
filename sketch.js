@@ -1,6 +1,7 @@
 
 let balls = [];
 let waves = [];
+let impactArrows = [];
 let selectedBall = null;
 let dragStart = null;
 let dragEnd = null;
@@ -43,6 +44,7 @@ function draw() {
   friction = Number(frictionSlider.value());
 
   showWaves();
+  showImpactArrows();
 
   // 구체의 움직임 계산
   for (let ball of balls) {
@@ -323,6 +325,14 @@ function collide(a, b) {
 
   // 충격량이 클수록 더 크고 선명한 파동 생성
   let impact = abs(impulse);
+  let impactLength = constrain(18 + impact * 18, 18, 70);
+  impactArrows.push({
+    pos: p5.Vector.add(a.pos, b.pos).mult(0.5),
+    vector: direction.copy().mult(impactLength),
+    alpha: 210,
+    weight: 2.5
+  });
+
   waves.push({
     pos: p5.Vector.add(a.pos, b.pos).mult(0.5),
     radius: 2,
@@ -340,6 +350,28 @@ function collide(a, b) {
   b.vel.add(
     impulseVector.copy().div(b.mass)
   );
+}
+
+function showImpactArrows() {
+  for (let i = impactArrows.length - 1; i >= 0; i--) {
+    let arrow = impactArrows[i];
+    let start = p5.Vector.sub(arrow.pos, arrow.vector.copy().mult(0.5));
+    let end = p5.Vector.add(arrow.pos, arrow.vector.copy().mult(0.5));
+
+    stroke(255, 150, 175, arrow.alpha);
+    strokeWeight(arrow.weight);
+    line(start.x, start.y, end.x, end.y);
+
+    push();
+    translate(end.x, end.y);
+    rotate(arrow.vector.heading());
+    line(0, 0, -8, -4);
+    line(0, 0, -8, 4);
+    pop();
+
+    arrow.alpha *= 0.9;
+    if (arrow.alpha < 2) impactArrows.splice(i, 1);
+  }
 }
 
 function showWaves() {
@@ -409,6 +441,7 @@ function keyPressed() {
   if (key === "r" || key === "R") {
     balls = [];
     waves = [];
+    impactArrows = [];
     selectedBall = null;
     setupBalls();
   }
