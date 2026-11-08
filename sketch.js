@@ -10,6 +10,10 @@ let friction = 0.015;
 const elasticity = 0.85;
 const power = 0.065;
 let frictionSlider;
+let trailOption;
+let forceOption;
+let velocityOption;
+let collisionOption;
 
 function setup() {
   createCanvas(800, 520);
@@ -18,33 +22,34 @@ function setup() {
   frictionSlider.position(585, 78);
   frictionSlider.style("width", "160px");
   frictionSlider.style("accent-color", "#D98EAB");
-  
-  let positions = [
-    [150, 260], [410, 180], [520, 260],
-    [410, 340], [620, 150], [630, 380]
-  ];
 
-  let colors = [
-    "#D98EAB", "#8DAEB8", "#E6BD8B",
-    "#A6B9A1", "#B4A4CC", "#D8A7A0"
-  ];
+  trailOption = createCheckbox("Trails", true);
+  forceOption = createCheckbox("Force", true);
+  velocityOption = createCheckbox("Velocity", true);
+  collisionOption = createCheckbox("Collisions", true);
 
-  for (let i = 0; i < positions.length; i++) {
-    balls.push(new Ball(
-      positions[i][0],
-      positions[i][1],
-      1 + i * 0.5,
-      colors[i]
-    ));
-  }
+  let options = [trailOption, forceOption, velocityOption, collisionOption];
+  options.forEach((option, i) => {
+    option.position(585, 104 + i * 24);
+    option.style("color", "#555555");
+    option.style("font-size", "12px");
+  });
+
+  setupBalls();
 }
 
 function draw() {
   background("#F7F5F0");
+  drawControlPanel();
   friction = Number(frictionSlider.value());
 
-  showWaves();
-  showImpactArrows();
+  if (collisionOption.checked()) {
+    showWaves();
+    showImpactArrows();
+  } else {
+    waves = [];
+    impactArrows = [];
+  }
 
   // 구체의 움직임 계산
   for (let ball of balls) {
@@ -62,13 +67,17 @@ function draw() {
 
   // 궤적과 구체 그리기
   for (let ball of balls) {
-    ball.showTrail();
+    if (trailOption.checked()) {
+      ball.showTrail();
+    } else {
+      ball.trail = [];
+    }
     ball.show();
-    showVelocity(ball);
+    if (velocityOption.checked()) showVelocity(ball);
   }
 
   // 마우스로 당기는 힘 표시
-  if (selectedBall && dragEnd) {
+  if (forceOption.checked() && selectedBall && dragEnd) {
     stroke("#A66D82");
     strokeWeight(2);
     line(
@@ -114,11 +123,13 @@ function draw() {
     fill(arrowColor);
     textAlign(LEFT, CENTER);
     textSize(12);
-    text(
-      "Force: " + (force.mag() * power).toFixed(2),
-      arrowEnd.x + 10,
-      arrowEnd.y
-    );
+    let label = "Force: " + (force.mag() * power).toFixed(2);
+    let labelX = constrain(arrowEnd.x + 10, 12, width - textWidth(label) - 12);
+    let labelY = constrain(arrowEnd.y, 92, height - 14);
+    fill(247, 245, 240, 220);
+    rect(labelX - 4, labelY - 9, textWidth(label) + 8, 18, 5);
+    fill(arrowColor);
+    text(label, labelX, labelY);
     textAlign(LEFT, BASELINE);
   }
 
@@ -149,6 +160,12 @@ function draw() {
   noStroke();
   fill("#555555");
   text("Friction: " + friction.toFixed(3), width - 215, 72);
+}
+
+function drawControlPanel() {
+  noStroke();
+  fill(255, 255, 255, 150);
+  rect(565, 8, 225, 190, 14);
 }
 
 function showVelocity(ball) {
@@ -239,15 +256,17 @@ class Ball {
 
   showTrail() {
     noFill();
+    strokeCap(ROUND);
 
     for (let i = 1; i < this.trail.length; i++) {
-      let alpha = map(i, 1, this.trail.length, 5, 120);
+      let alpha = map(i, 1, this.trail.length, 8, 115);
+      let weight = map(i, 1, this.trail.length, 0.5, 2.4);
 
       let c = color(this.col);
       c.setAlpha(alpha);
 
       stroke(c);
-      strokeWeight(1.5);
+      strokeWeight(weight);
 
       line(
         this.trail[i - 1].x,
