@@ -55,6 +55,7 @@ function draw() {
   for (let ball of balls) {
     ball.showTrail();
     ball.show();
+    showVelocity(ball);
   }
 
   // 마우스로 당기는 힘 표시
@@ -120,6 +121,40 @@ function draw() {
   textSize(12);
   text("Drag a circle and release to apply force", 24, 52);
   text("Press R to reset", 24, 70);
+
+  // 벡터 범례
+  stroke("#D98EAB");
+  strokeWeight(3);
+  line(width - 145, 28, width - 125, 28);
+  noStroke();
+  fill("#D98EAB");
+  text("Force", width - 118, 32);
+
+  stroke("#6D9CC7");
+  strokeWeight(3);
+  line(width - 145, 48, width - 125, 48);
+  noStroke();
+  fill("#6D9CC7");
+  text("Velocity", width - 118, 52);
+}
+
+function showVelocity(ball) {
+  if (ball.vel.mag() <= 0.05) return;
+
+  let velocity = ball.vel.copy().mult(8);
+  velocity.limit(120);
+  let end = p5.Vector.add(ball.pos, velocity);
+
+  stroke("#6D9CC7");
+  strokeWeight(3);
+  line(ball.pos.x, ball.pos.y, end.x, end.y);
+
+  push();
+  translate(end.x, end.y);
+  rotate(velocity.heading());
+  line(0, 0, -10, -5);
+  line(0, 0, -10, 5);
+  pop();
 }
 
 class Ball {
