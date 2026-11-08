@@ -5,12 +5,18 @@ let selectedBall = null;
 let dragStart = null;
 let dragEnd = null;
 
-const friction = 0.992;
+let friction = 0.015;
 const elasticity = 0.85;
 const power = 0.065;
+let frictionSlider;
 
 function setup() {
   createCanvas(800, 520);
+
+  frictionSlider = createSlider(0.001, 0.05, friction, 0.001);
+  frictionSlider.position(585, 78);
+  frictionSlider.style("width", "160px");
+  frictionSlider.style("accent-color", "#D98EAB");
   
   let positions = [
     [150, 260], [410, 180], [520, 260],
@@ -34,6 +40,7 @@ function setup() {
 
 function draw() {
   background("#F7F5F0");
+  friction = Number(frictionSlider.value());
 
   showWaves();
 
@@ -136,6 +143,10 @@ function draw() {
   noStroke();
   fill("#6D9CC7");
   text("Velocity", width - 118, 52);
+
+  noStroke();
+  fill("#555555");
+  text("Friction: " + friction.toFixed(3), width - 215, 72);
 }
 
 function showVelocity(ball) {
@@ -179,7 +190,7 @@ class Ball {
     if (this.vel.mag() > 0.01) {
       let f = this.vel.copy();
       f.mult(-1);
-      f.setMag(0.015 * this.mass);
+      f.setMag(friction * this.mass);
       this.applyForce(f);
     }
   }
@@ -188,8 +199,6 @@ class Ball {
     this.vel.add(this.acc);
     this.pos.add(this.vel);
     this.acc.mult(0);
-
-    this.vel.mult(friction);
 
     if (this.vel.mag() < 0.02) {
       this.vel.mult(0);
